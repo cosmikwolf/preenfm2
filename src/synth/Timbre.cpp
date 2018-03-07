@@ -201,12 +201,12 @@ Timbre::~Timbre() {
 void Timbre::init(int timbreNumber) {
 
 
-	env1.init(&params.env1a,  &params.env1b, 0);
-	env2.init(&params.env2a,  &params.env2b, 1);
-	env3.init(&params.env3a,  &params.env3b, 2);
-	env4.init(&params.env4a,  &params.env4b, 3);
-	env5.init(&params.env5a,  &params.env5b, 4);
-	env6.init(&params.env6a,  &params.env6b, 5);
+	env1.init(&params.env1a,  &params.env1b, 0, &params.engine1.algo);
+	env2.init(&params.env2a,  &params.env2b, 1, &params.engine1.algo);
+	env3.init(&params.env3a,  &params.env3b, 2, &params.engine1.algo);
+	env4.init(&params.env4a,  &params.env4b, 3, &params.engine1.algo);
+	env5.init(&params.env5a,  &params.env5b, 4, &params.engine1.algo);
+	env6.init(&params.env6a,  &params.env6b, 5, &params.engine1.algo);
 
 	osc1.init(&params.osc1, OSC1_FREQ);
 	osc2.init(&params.osc2, OSC2_FREQ);
@@ -943,6 +943,8 @@ void Timbre::resetArpeggiator() {
 }
 
 
+
+
 void Timbre::setNewValue(int index, struct ParameterDisplay* param, float newValue) {
     if (newValue > param->maxValue) {
         // in v2, matrix target were removed so some values are > to max value but we need to accept it
@@ -959,6 +961,24 @@ void Timbre::setNewValue(int index, struct ParameterDisplay* param, float newVal
         newValue= param->minValue;
     }
     ((float*)&params)[index] = newValue;
+}
+
+int Timbre::getSeqStepValue(int whichStepSeq, int step) {
+
+    if (whichStepSeq == 0) {
+        return params.lfoSteps1.steps[step];
+    } else {
+        return params.lfoSteps2.steps[step];
+    }
+}
+
+void Timbre::setSeqStepValue(int whichStepSeq, int step, int value) {
+
+    if (whichStepSeq == 0) {
+        params.lfoSteps1.steps[step] = value;
+    } else {
+        params.lfoSteps2.steps[step] = value;
+    }
 }
 
 void Timbre::recomputeBPValues() {
@@ -1528,7 +1548,7 @@ void Timbre::verifyLfoUsed(int encoder, float oldValue, float newValue) {
     if (params.engine1.numberOfVoice == 0.0f) {
         return;
     }
-    if ((encoder == ENCODER_MATRIX_MUL || encoder == ENCODER_MATRIX_DEST) && oldValue != 0.0f && newValue != 0.0f) {
+    if (encoder == ENCODER_MATRIX_MUL && oldValue != 0.0f && newValue != 0.0f) {
         return;
     }
 
@@ -1537,12 +1557,25 @@ void Timbre::verifyLfoUsed(int encoder, float oldValue, float newValue) {
     }
 
     MatrixRowParams* matrixRows = &params.matrixRowState1;
+
+
     for (int r = 0; r < MATRIX_SIZE; r++) {
         if (matrixRows[r].source >= MATRIX_SOURCE_LFO1 && matrixRows[r].source <= MATRIX_SOURCE_LFOSEQ2
                 && matrixRows[r].mul != 0.0f
                 && matrixRows[r].destination != 0.0f) {
             lfoUSed[(int)matrixRows[r].source - MATRIX_SOURCE_LFO1]++;
         }
+
+
+		// Check if we have a Mtx* that would require LFO even if mul is 0
+		// http://ixox.fr/forum/index.php?topic=69220.0
+        if (matrixRows[r].destination >= MTX1_MUL && matrixRows[r].destination <= MTX4_MUL && matrixRows[r].mul != 0.0f && matrixRows[r].source != 0.0f) {
+			int index = matrixRows[r].destination - MTX1_MUL;
+	        if (matrixRows[index].source >= MATRIX_SOURCE_LFO1 && matrixRows[index].source <= MATRIX_SOURCE_LFOSEQ2 && matrixRows[index].destination != 0.0f) {
+            	lfoUSed[(int)matrixRows[index].source - MATRIX_SOURCE_LFO1]++;
+			}
+		}
+
     }
 
     /*
@@ -1552,6 +1585,6 @@ void Timbre::verifyLfoUsed(int encoder, float oldValue, float newValue) {
         lcd.print((int)lfoUSed[lfo]);
     }
     lcd.print('<');
-*/
+	*/
 
 }

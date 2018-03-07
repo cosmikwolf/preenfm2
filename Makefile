@@ -1,21 +1,21 @@
-PFM2_VERSION_NUMBER=2.06cv
+PFM2_VERSION_NUMBER=2.08a
 PFM2_BIN_NUMBER=$(subst .,,${PFM2_VERSION_NUMBER})
 PFM2_BOOTLOADER_VERSION_NUMBER=1.11
 PFM2_VERSION=\"${PFM2_VERSION_NUMBER}\"
 PFM2_BOOTLOADER_VERSION=\"${PFM2_BOOTLOADER_VERSION_NUMBER}\"
 
-ELF_BOOTLOADER=build/p2_boot_${PFM2_BOOTLOADER_VERSION_NUMBER}.elf
-BIN_BOOTLOADER=build/p2_boot_${PFM2_BOOTLOADER_VERSION_NUMBER}.bin
-SYMBOLS_BOOTLOADER=build/symbols_p2_boot_${PFM2_BOOTLOADER_VERSION_NUMBER}.txt
+ELF_BOOTLOADER=build/p2cv_boot_${PFM2_BOOTLOADER_VERSION_NUMBER}.elf
+BIN_BOOTLOADER=build/p2cv_boot_${PFM2_BOOTLOADER_VERSION_NUMBER}.bin
+SYMBOLS_BOOTLOADER=build/symbols_p2cv_boot_${PFM2_BOOTLOADER_VERSION_NUMBER}.txt
 
-ELF_FIRMWARE=build/p2_${PFM2_VERSION_NUMBER}.elf
-ELF_FIRMWARE_O=build/p2_${PFM2_VERSION_NUMBER}o.elf
-BIN_FIRMWARE=build/p2_${PFM2_BIN_NUMBER}.bin
-BIN_FIRMWARE_O=build/p2_${PFM2_BIN_NUMBER}o.bin
-SYMBOLS_FIRMWARE=build/symbols_p2_${PFM2_VERSION_NUMBER}.txt
-SYMBOLS_FIRMWARE_O=build/symbols_p2_${PFM2_VERSION_NUMBER}o.txt
+ELF_FIRMWARE=build/p2cv_${PFM2_VERSION_NUMBER}.elf
+ELF_FIRMWARE_O=build/p2cv_${PFM2_VERSION_NUMBER}o.elf
+BIN_FIRMWARE=build/p2cv_${PFM2_BIN_NUMBER}.bin
+BIN_FIRMWARE_O=build/p2cv_${PFM2_BIN_NUMBER}o.bin
+SYMBOLS_FIRMWARE=build/symbols_p2cv_${PFM2_VERSION_NUMBER}.txt
+SYMBOLS_FIRMWARE_O=build/symbols_p2cv_${PFM2_VERSION_NUMBER}o.txt
 
-BIN_SYSEX=build/p2_${PFM2_VERSION_NUMBER}.syx
+BIN_SYSEX=build/p2cv_${PFM2_VERSION_NUMBER}.syx
 
 C      = arm-none-eabi-gcc
 CC      = arm-none-eabi-c++
@@ -44,10 +44,13 @@ SRC_FIRMWARE = src/PreenFM.cpp \
 	src/library/STM32_USB_HOST_Library/Class/MSC/src/usbh_msc_bot.c \
 	src/library/STM32_USB_HOST_Library/Class/MSC/src/usbh_msc_scsi.c \
 	src/library/STM32_USB_HOST_Library/Class/MSC/src/usbh_msc_fatfs.c \
+	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_adc.c \
+	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_dma.c \
 	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_gpio.c \
 	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_rcc.c \
 	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_usart.c \
 	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_spi.c \
+	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_tim.c \
 	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_rng.c \
 	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_adc.c \
 	src/library/STM32F4xx_StdPeriph_Driver/src/stm32f4xx_tim.c \
@@ -180,13 +183,24 @@ all:
 	@echo "   installbootdfu : flash bootloader through DFU"
 	@echo "   zip : create zip with all inside"
 
-zip: pfm2_$(PFM2_VERSION_NUMBER).zip
+zip: pfm2cv_$(PFM2_VERSION_NUMBER).zip
 
-pfm2_$(PFM2_VERSION_NUMBER).zip :
+release: zip
+	mkdir -p release/fw_$(PFM2_VERSION_NUMBER)
+	cp build/install_firmware.cmd release/fw_$(PFM2_VERSION_NUMBER)/
+	cp build/install_firmware_overclocked.cmd release/fw_$(PFM2_VERSION_NUMBER)/
+	cp $(BIN_FIRMWARE) release/fw_$(PFM2_VERSION_NUMBER)/
+	cp $(BIN_FIRMWARE_O) release/fw_$(PFM2_VERSION_NUMBER)/
+	
+	
+pfm2cv_$(PFM2_VERSION_NUMBER).zip :
 	echo "dfu-util -a0 -d 0x0483:0xdf11 -D $(notdir $(BIN_FIRMWARE)) -s 0x8040000" > build/install_firmware.cmd
 	echo "dfu-util -a0 -d 0x0483:0xdf11 -D $(notdir $(BIN_FIRMWARE_O)) -s 0x8040000" > build/install_firmware_overclocked.cmd
 #	echo "dfu-util -a0 -d 0x0483:0xdf11 -D $(notdir $(BIN_BOOTLOADER)) -s 0x8000000" > build/install_bootloader.cmd
-	zip pfm2_$(PFM2_VERSION_NUMBER).zip build/*.bin build/*.syx build/*.cmd
+	zip pfm2cv_$(PFM2_VERSION_NUMBER).zip build/*.bin build/*.syx build/*.cmd
+
+
+
 
 pfm: $(BIN_FIRMWARE)
 
@@ -352,7 +366,7 @@ build/%.o: src/midipal/%.cpp
 
 clean:
 	@ echo ".clean"
-	rm -f *.lst build/*.o pfm2_$(PFM2_VERSION_NUMBER).zip
+	rm -f *.lst build/*.o pfm2cv_$(PFM2_VERSION_NUMBER).zip
 
 cleanall:
 	@ echo ".clean all"

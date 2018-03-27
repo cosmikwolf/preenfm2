@@ -1,4 +1,4 @@
-PFM2_VERSION_NUMBER=2.08a
+PFM2_VERSION_NUMBER=2.08b
 PFM2_BIN_NUMBER=$(subst .,,${PFM2_VERSION_NUMBER})
 PFM2_BOOTLOADER_VERSION_NUMBER=1.11
 PFM2_VERSION=\"${PFM2_VERSION_NUMBER}\"
@@ -68,7 +68,7 @@ SRC_FIRMWARE = src/PreenFM.cpp \
 	src/hardware/Menu.cpp \
 	src/hardware/FMDisplay.cpp \
 	src/hardware/Encoders.cpp \
-	src/hardware/LiquidCrystal.cpp \
+	src/hardware/CVIn.cpp \
 	src/filesystem/ComboBank.cpp \
 	src/filesystem/ConfigurationFile.cpp \
 	src/filesystem/DX7SysexFile.cpp \

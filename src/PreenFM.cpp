@@ -83,7 +83,6 @@ void setup() {
 	USART_Config();
 	MCP4922_Config();
 	RNG_Config();
-    ADC_Config(cvin.getADCBufferAdress());
 
 	// Set flush to zero mode...
 	// FPU will treat denormal value as 0
@@ -297,6 +296,12 @@ void setup() {
         // First preset...
         synthState.buttonPressed(BUTTON_MENUSELECT);
     }
+
+
+    // Init ADC
+#ifdef CVIN
+    ADC_Config(cvin.getADCBufferAdress());
+#endif
 
 
 }
